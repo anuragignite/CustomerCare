@@ -1,5 +1,7 @@
 package com.example.anurag.customercare.activities;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.example.anurag.customercare.R;
@@ -13,6 +15,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -51,6 +54,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
 
     private String                   mActiveConnectionId;
 
+    private MediaPlayer              mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +97,15 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
                 if (!dataSnapshot.child(mUserId).exists()) {
                     Executive executive = new Executive();
                     executive.setExecutiveId(mUserId);
+                    executive.setName("Anurag");
                     executive.setRating(4.1);
+
+                    List<String> tags = new ArrayList<>();
+                    tags.add("Champion Executive");
+                    tags.add("Polite");
+                    tags.add("Tower expert");
+                    executive.setTags(tags);
+
                     CustomCareApplication.getInstance().getDatabaseReference().child(EXECUTIVES).child(mUserId).setValue(executive);
                 }
             }
@@ -131,6 +143,11 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
         if (!TextUtils.isEmpty(mActiveConnectionId)) {
             CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).child(mActiveConnectionId).removeValue();
         }
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
     private void startListeningIncomingCustomerCall() {
@@ -149,9 +166,16 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 Customer customer = dataSnapshot.getValue(Customer.class);
-                                mExecutiveId.setText(getString(R.string.id_text, customer.getCustomerId()));
+                                mExecutiveId.setText(getString(R.string.id_text, customer.getName()));
                                 mExecutiveRating.setText(getString(R.string.rating_text, customer.getRating()));
-//                                setViewVisibility(View.GONE, mAnswer);
+                                List<String> tags = customer.getTags();
+                                if (tags != null && !tags.isEmpty()) {
+                                    mExecutiveTags.setText(getString(R.string.tag_text, TextUtils.join(", ", tags)));
+                                }
+                                // setViewVisibility(View.GONE, mAnswer);
+                                mediaPlayer = MediaPlayer.create(ExecutiveActivity.this, R.raw.sonar);
+                                mediaPlayer.setLooping(true);
+                                mediaPlayer.start();
                                 Toast.makeText(ExecutiveActivity.this, "Customer request coming....please answer", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -229,6 +253,11 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void initiateResposeCall() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
         activeConnection.setActiveStatus(true);
         activeConnection.setExecutiveId(mUserId);
         mActiveConnectionId = activeConnection.getCustomerId() + activeConnection.getExecutiveId();

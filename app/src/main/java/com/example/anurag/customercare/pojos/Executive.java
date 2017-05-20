@@ -10,7 +10,9 @@ public class Executive {
 
     private String       executiveId;
 
-    private double         rating;
+    private String       name;
+
+    private double       rating;
 
     private List<String> tags;
 
@@ -36,5 +38,13 @@ public class Executive {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

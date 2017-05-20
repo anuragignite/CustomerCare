@@ -1,5 +1,7 @@
 package com.example.anurag.customercare.activities;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.example.anurag.customercare.R;
@@ -89,7 +91,15 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
                 if (!dataSnapshot.child(mUserId).exists()) {
                     Customer customer = new Customer();
                     customer.setCustomerId(mUserId);
-                    customer.setRating(4.5);
+                    customer.setName(CustomCareApplication.getInstance().getName());
+                    customer.setRating(3);
+
+                    List<String> tags = new ArrayList<>();
+                    tags.add("Recent Connection");
+                    tags.add("Short Tempered");
+                    tags.add("Tower Problem");
+                    customer.setTags(tags);
+
                     CustomCareApplication.getInstance().getDatabaseReference().child(CUSTOMERS).child(mUserId).setValue(customer);
                 }
             }
@@ -143,8 +153,12 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.exists()) {
                                         Executive executive = dataSnapshot.getValue(Executive.class);
-                                        mCustomerId.setText(getString(R.string.id_text, executive.getExecutiveId()));
+                                        mCustomerId.setText(getString(R.string.id_text, executive.getName()));
                                         mCustomerRating.setText(getString(R.string.rating_text, executive.getRating()));
+                                        List<String> tags = executive.getTags();
+                                        if (tags != null && !tags.isEmpty()) {
+                                            mCustomerTags.setText(getString(R.string.tag_text, TextUtils.join(", ", tags)));
+                                        }
                                         // setViewVisibility(View.GONE, mCall);
                                     }
                                 }

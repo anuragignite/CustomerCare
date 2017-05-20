@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Customer Care</string>
 
-    <string name="id_text">id : %1$s</string>
-    <string name="rating_text">rating : %1$.0f</string>
-    <string name="tag_text">tags : %1$</string>
+    <string name="id_text">Name : %1$s</string>
+    <string name="rating_text">Rating : %1$.0f</string>
+    <string name="tag_text">Tags : %1$s</string>
 
 </resources>

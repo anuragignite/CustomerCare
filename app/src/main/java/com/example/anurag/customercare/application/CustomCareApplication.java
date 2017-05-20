@@ -7,6 +7,8 @@ import android.support.multidex.MultiDex;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.Random;
+
 /**
  * Created by anurag on 19/05/17.
  */
@@ -15,7 +17,9 @@ public class CustomCareApplication extends Application {
 
     private static CustomCareApplication sINSTANCE;
 
-    private DatabaseReference mDatabaseReference;
+    private DatabaseReference            mDatabaseReference;
+
+    private String[]                     mNames = { "Anurag Kumar", "Komal Singh", "Bhartendu Tanwar", "Aastha Priya", "Prashant Kumar", "Sudipta Banergee" };
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -38,5 +42,9 @@ public class CustomCareApplication extends Application {
 
     public DatabaseReference getDatabaseReference() {
         return mDatabaseReference;
+    }
+
+    public String getName() {
+        return mNames[new Random().nextInt(mNames.length)];
     }
 }
