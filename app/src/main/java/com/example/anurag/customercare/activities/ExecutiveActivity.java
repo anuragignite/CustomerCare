@@ -6,9 +6,11 @@ import java.util.UUID;
 
 import com.example.anurag.customercare.R;
 import com.example.anurag.customercare.application.CustomCareApplication;
+import com.example.anurag.customercare.constants.Constants;
 import com.example.anurag.customercare.pojos.ActiveConnection;
 import com.example.anurag.customercare.pojos.Customer;
 import com.example.anurag.customercare.pojos.Executive;
+import com.example.anurag.customercare.utils.Utils;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,15 +32,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
 
     private static final String      LOG_TAG           = "EXECUTIVE_ACTIVITY";
 
-    private static final String      ACTIVE_EXECUTIVES = "activeexecutive";
-
-    private static final String      ACTIVE_THREADS    = "activethreads";
-
-    private static final String      PENDING_REQUESTS  = "pendingrequests";
-
-    private static final String      CUSTOMERS         = "customers";
-
-    private static final String      EXECUTIVES        = "executives";
+    private LinearLayout             mExecutiveView;
 
     private TextView                 mExecutiveId, mExecutiveRating, mExecutiveTags, mAnswer;
 
@@ -64,10 +58,13 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
         findViews();
         bindViews();
 
+        Toast.makeText(this, "please wait for customer query...your compliance will be rewarded", Toast.LENGTH_LONG).show();
+
         initValuesForExecutive();
     }
 
     private void findViews() {
+        mExecutiveView = (LinearLayout) findViewById(R.id.ll_executive);
         mExecutiveId = (TextView) findViewById(R.id.tv_e_id);
         mExecutiveRating = (TextView) findViewById(R.id.tv_e_rating);
         mExecutiveTags = (TextView) findViewById(R.id.tv_e_tags);
@@ -76,6 +73,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
 
     private void bindViews() {
         mAnswer.setOnClickListener(this);
+        Utils.setViewVisibility(View.GONE, mExecutiveView, mAnswer);
     }
 
     private void setUserId() {
@@ -90,7 +88,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void initValuesForExecutive() {
-        CustomCareApplication.getInstance().getDatabaseReference().child(EXECUTIVES).addListenerForSingleValueEvent(new ValueEventListener() {
+        CustomCareApplication.getInstance().getDatabaseReference().child(Constants.EXECUTIVES).addListenerForSingleValueEvent(new ValueEventListener() {
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -106,7 +104,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
                     tags.add("Tower expert");
                     executive.setTags(tags);
 
-                    CustomCareApplication.getInstance().getDatabaseReference().child(EXECUTIVES).child(mUserId).setValue(executive);
+                    CustomCareApplication.getInstance().getDatabaseReference().child(Constants.EXECUTIVES).child(mUserId).setValue(executive);
                 }
             }
 
@@ -141,7 +139,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
         stopListeningIncomingCustomerCall();
         stopListeningActiveThreads();
         if (!TextUtils.isEmpty(mActiveConnectionId)) {
-            CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).child(mActiveConnectionId).removeValue();
+            CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).child(mActiveConnectionId).removeValue();
         }
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
@@ -151,7 +149,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void startListeningIncomingCustomerCall() {
-        mPendingRequestChildEventListener = CustomCareApplication.getInstance().getDatabaseReference().child(PENDING_REQUESTS).addChildEventListener(new ChildEventListener() {
+        mPendingRequestChildEventListener = CustomCareApplication.getInstance().getDatabaseReference().child(Constants.PENDING_REQUESTS).addChildEventListener(new ChildEventListener() {
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -160,7 +158,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
                     activeConnection = new ActiveConnection();
                     activeConnection.setCustomerId(dataSnapshot.getKey());
 
-                    CustomCareApplication.getInstance().getDatabaseReference().child(CUSTOMERS).child(activeConnection.getCustomerId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    CustomCareApplication.getInstance().getDatabaseReference().child(Constants.CUSTOMERS).child(activeConnection.getCustomerId()).addListenerForSingleValueEvent(new ValueEventListener() {
 
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
@@ -172,7 +170,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
                                 if (tags != null && !tags.isEmpty()) {
                                     mExecutiveTags.setText(getString(R.string.tag_text, TextUtils.join(", ", tags)));
                                 }
-                                // setViewVisibility(View.GONE, mAnswer);
+                                Utils.setViewVisibility(View.VISIBLE, mExecutiveView, mAnswer);
                                 mediaPlayer = MediaPlayer.create(ExecutiveActivity.this, R.raw.sonar);
                                 mediaPlayer.setLooping(true);
                                 mediaPlayer.start();
@@ -212,12 +210,12 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
 
     private void stopListeningIncomingCustomerCall() {
         if (mPendingRequestChildEventListener != null) {
-            CustomCareApplication.getInstance().getDatabaseReference().child(PENDING_REQUESTS).removeEventListener(mPendingRequestChildEventListener);
+            CustomCareApplication.getInstance().getDatabaseReference().child(Constants.PENDING_REQUESTS).removeEventListener(mPendingRequestChildEventListener);
         }
     }
 
     private void startListeningActiveThreads() {
-        mActiveThreadChildEventListener = CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).addChildEventListener(new ChildEventListener() {
+        mActiveThreadChildEventListener = CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).addChildEventListener(new ChildEventListener() {
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -248,7 +246,7 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
 
     private void stopListeningActiveThreads() {
         if (mActiveThreadChildEventListener != null) {
-            CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).removeEventListener(mActiveThreadChildEventListener);
+            CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).removeEventListener(mActiveThreadChildEventListener);
         }
     }
 
@@ -261,22 +259,17 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
         activeConnection.setActiveStatus(true);
         activeConnection.setExecutiveId(mUserId);
         mActiveConnectionId = activeConnection.getCustomerId() + activeConnection.getExecutiveId();
-        CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).child(activeConnection.getCustomerId() + activeConnection.getExecutiveId()).setValue(activeConnection);
-        CustomCareApplication.getInstance().getDatabaseReference().child(PENDING_REQUESTS).child(activeConnection.getCustomerId()).removeValue();
-        setViewVisibility(View.GONE, mAnswer);
+        CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).child(activeConnection.getCustomerId() + activeConnection.getExecutiveId()).setValue(activeConnection);
+        CustomCareApplication.getInstance().getDatabaseReference().child(Constants.PENDING_REQUESTS).child(activeConnection.getCustomerId()).removeValue();
+        Utils.setViewVisibility(View.GONE, mAnswer);
     }
 
     private void registerAsAirtelExecutive() {
-        CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_EXECUTIVES).child(mUserId).setValue(true);
+        CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_EXECUTIVES).child(mUserId).setValue(true);
     }
 
     private void unRegisterAsAirtelExecutive() {
-        CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_EXECUTIVES).child(mUserId).removeValue();
+        CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_EXECUTIVES).child(mUserId).removeValue();
     }
 
-    private void setViewVisibility(int visibility, View... views) {
-        for (View view : views) {
-            view.setVisibility(visibility);
-        }
-    }
 }

@@ -6,9 +6,11 @@ import java.util.UUID;
 
 import com.example.anurag.customercare.R;
 import com.example.anurag.customercare.application.CustomCareApplication;
+import com.example.anurag.customercare.constants.Constants;
 import com.example.anurag.customercare.pojos.ActiveConnection;
 import com.example.anurag.customercare.pojos.Customer;
 import com.example.anurag.customercare.pojos.Executive;
+import com.example.anurag.customercare.utils.Utils;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,13 +30,7 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
 
     private static final String      LOG_TAG          = "CUSTOMER_ACTIVITY";
 
-    private static final String      ACTIVE_THREADS   = "activethreads";
-
-    private static final String      PENDING_REQUESTS = "pendingrequests";
-
-    private static final String      CUSTOMERS        = "customers";
-
-    private static final String      EXECUTIVES       = "executives";
+    private LinearLayout             mCustomerView;
 
     private TextView                 mCustomerId, mCustomerRating, mCustomerTags, mCall;
 
@@ -62,6 +58,7 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void findViews() {
+        mCustomerView = (LinearLayout) findViewById(R.id.ll_customer);
         mCustomerId = (TextView) findViewById(R.id.tv_c_id);
         mCustomerRating = (TextView) findViewById(R.id.tv_c_rating);
         mCustomerTags = (TextView) findViewById(R.id.tv_c_tags);
@@ -70,6 +67,7 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
 
     private void bindViews() {
         mCall.setOnClickListener(this);
+        Utils.setViewVisibility(View.GONE, mCustomerView);
     }
 
     private void setUserId() {
@@ -84,7 +82,7 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void initValuesForCustomer() {
-        CustomCareApplication.getInstance().getDatabaseReference().child(CUSTOMERS).addListenerForSingleValueEvent(new ValueEventListener() {
+        CustomCareApplication.getInstance().getDatabaseReference().child(Constants.CUSTOMERS).addListenerForSingleValueEvent(new ValueEventListener() {
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -100,7 +98,7 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
                     tags.add("Tower Problem");
                     customer.setTags(tags);
 
-                    CustomCareApplication.getInstance().getDatabaseReference().child(CUSTOMERS).child(mUserId).setValue(customer);
+                    CustomCareApplication.getInstance().getDatabaseReference().child(Constants.CUSTOMERS).child(mUserId).setValue(customer);
                 }
             }
 
@@ -131,12 +129,12 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
         super.onStop();
         stopListeningActiveThreads();
         if (!TextUtils.isEmpty(mActiveConnectionId)) {
-            CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).child(mActiveConnectionId).removeValue();
+            CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).child(mActiveConnectionId).removeValue();
         }
     }
 
     private void startListeningActiveThreads() {
-        mActiveThreadChildEventListener = CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).addChildEventListener(new ChildEventListener() {
+        mActiveThreadChildEventListener = CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).addChildEventListener(new ChildEventListener() {
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -147,7 +145,7 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
                         String customerId = activeConnection.getCustomerId();
                         if (mUserId.equalsIgnoreCase(customerId)) {
                             mActiveConnectionId = activeConnection.getCustomerId() + activeConnection.getExecutiveId();
-                            CustomCareApplication.getInstance().getDatabaseReference().child(EXECUTIVES).child(activeConnection.getExecutiveId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            CustomCareApplication.getInstance().getDatabaseReference().child(Constants.EXECUTIVES).child(activeConnection.getExecutiveId()).addListenerForSingleValueEvent(new ValueEventListener() {
 
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -159,7 +157,8 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
                                         if (tags != null && !tags.isEmpty()) {
                                             mCustomerTags.setText(getString(R.string.tag_text, TextUtils.join(", ", tags)));
                                         }
-                                        // setViewVisibility(View.GONE, mCall);
+                                        Utils.setViewVisibility(View.VISIBLE, mCustomerView);
+//                                        Utils.setViewVisibility(View.GONE, mCall);
                                     }
                                 }
 
@@ -200,18 +199,13 @@ public class CustomerActivity extends AppCompatActivity implements View.OnClickL
 
     private void stopListeningActiveThreads() {
         if (mActiveThreadChildEventListener != null) {
-            CustomCareApplication.getInstance().getDatabaseReference().child(ACTIVE_THREADS).removeEventListener(mActiveThreadChildEventListener);
+            CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).removeEventListener(mActiveThreadChildEventListener);
         }
     }
 
     private void initiateCustomerCareCall() {
-        CustomCareApplication.getInstance().getDatabaseReference().child(PENDING_REQUESTS).child(mUserId).setValue(true);
-        setViewVisibility(View.GONE, mCall);
+        CustomCareApplication.getInstance().getDatabaseReference().child(Constants.PENDING_REQUESTS).child(mUserId).setValue(true);
+        Utils.setViewVisibility(View.GONE, mCall);
     }
 
-    private void setViewVisibility(int visibility, View... views) {
-        for (View view : views) {
-            view.setVisibility(visibility);
-        }
-    }
 }
