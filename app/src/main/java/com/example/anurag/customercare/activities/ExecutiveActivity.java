@@ -11,6 +11,7 @@ import com.example.anurag.customercare.pojos.ActiveConnection;
 import com.example.anurag.customercare.pojos.Customer;
 import com.example.anurag.customercare.pojos.Executive;
 import com.example.anurag.customercare.utils.Utils;
+import com.example.anurag.customercare.views.RippleBackground;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,7 +31,7 @@ import android.widget.Toast;
 
 public class ExecutiveActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String      LOG_TAG           = "EXECUTIVE_ACTIVITY";
+    private static final String      LOG_TAG = "EXECUTIVE_ACTIVITY";
 
     private LinearLayout             mExecutiveView;
 
@@ -49,6 +50,8 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
     private String                   mActiveConnectionId;
 
     private MediaPlayer              mediaPlayer;
+
+    private RippleBackground         mRippleAnimation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,11 +72,12 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
         mExecutiveRating = (TextView) findViewById(R.id.tv_e_rating);
         mExecutiveTags = (TextView) findViewById(R.id.tv_e_tags);
         mAnswer = (TextView) findViewById(R.id.tv_answer);
+        mRippleAnimation = (RippleBackground) findViewById(R.id.ripple);
     }
 
     private void bindViews() {
         mAnswer.setOnClickListener(this);
-        Utils.setViewVisibility(View.GONE, mExecutiveView, mAnswer);
+        Utils.setViewVisibility(View.GONE, mExecutiveView, mAnswer, mRippleAnimation);
     }
 
     private void setUserId() {
@@ -130,6 +134,9 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
         registerAsAirtelExecutive();
         startListeningIncomingCustomerCall();
         startListeningActiveThreads();
+        if (mRippleAnimation != null) {
+            mRippleAnimation.stopRippleAnimation();
+        }
     }
 
     @Override
@@ -170,7 +177,9 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
                                 if (tags != null && !tags.isEmpty()) {
                                     mExecutiveTags.setText(getString(R.string.tag_text, TextUtils.join(", ", tags)));
                                 }
-                                Utils.setViewVisibility(View.VISIBLE, mExecutiveView, mAnswer);
+                                Utils.setViewVisibility(View.VISIBLE, mExecutiveView, mAnswer, mRippleAnimation);
+                                mRippleAnimation.stopRippleAnimation();
+                                mRippleAnimation.startRippleAnimation();
                                 mediaPlayer = MediaPlayer.create(ExecutiveActivity.this, R.raw.sonar);
                                 mediaPlayer.setLooping(true);
                                 mediaPlayer.start();
@@ -261,7 +270,9 @@ public class ExecutiveActivity extends AppCompatActivity implements View.OnClick
         mActiveConnectionId = activeConnection.getCustomerId() + activeConnection.getExecutiveId();
         CustomCareApplication.getInstance().getDatabaseReference().child(Constants.ACTIVE_THREADS).child(activeConnection.getCustomerId() + activeConnection.getExecutiveId()).setValue(activeConnection);
         CustomCareApplication.getInstance().getDatabaseReference().child(Constants.PENDING_REQUESTS).child(activeConnection.getCustomerId()).removeValue();
-        Utils.setViewVisibility(View.GONE, mAnswer);
+
+        mRippleAnimation.stopRippleAnimation();
+        Utils.setViewVisibility(View.GONE, mAnswer, mRippleAnimation);
     }
 
     private void registerAsAirtelExecutive() {

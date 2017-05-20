@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -21,7 +22,7 @@
         <TextView
             android:id="@+id/tv_e_id"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="40dp"
             android:gravity="center_vertical"
             android:padding="4dp"
             android:text="id"
@@ -47,15 +48,34 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tv_answer"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginTop="20dp"
-        android:background="@android:color/holo_green_light"
-        android:gravity="center"
-        android:padding="4dp"
-        android:text="ANSWER"
-        android:textSize="18dp" />
+        android:layout_height="200dp"
+        android:layout_marginTop="60dp">
+
+        <TextView
+            android:id="@+id/tv_answer"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:padding="4dp"
+            android:text="ANSWER"
+            android:textSize="18dp" />
+
+        <com.example.anurag.customercare.views.RippleBackground
+            android:id="@+id/ripple"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_centerInParent="true"
+            app:rb_color="@color/vivid_blue"
+            app:rb_duration="3000"
+            app:rb_radius="40dp"
+            app:rb_type="strokeRipple"
+            app:rb_strokeWidth="24dp"
+            app:rb_rippleAmount="5"
+            app:rb_scale="6" />
+    </RelativeLayout>
+
 
 </LinearLayout>
